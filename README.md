@@ -1,18 +1,62 @@
-# Leveraging Machine Learning for Revenue Optimization via Strategic Couponing
+# Machine Learning for Revenue Optimization via Strategic Couponing
 
-## Introduction
-Many customers order only once in an online store. There are several reasons why they don’t place another order. To counteract this, online retailers use various customer loyalty measures. One measure, for example, is to send coupons sometime after an initial order has been placed. The intention is to encourage the customer to make a follow-up purchase. Even though the vouchers don’t cost the online retailer anything directly, it is not a good solution to send all customers a discount voucher: Some customers would make a follow-up purchase even without a voucher. In this case, a redeemed discount means less revenue for the online retailer. Therefore, it is crucial to devise a more targeted approach for distributing these vouchers.
+## Executive summary
+This project builds a predictive model that decides whether to send a €5 voucher after a customer’s first order. The aim is to maximize incremental revenue by targeting only those customers who would otherwise churn while avoiding unnecessary discounts to customers who would buy again without an incentive.
 
-## Task
-The task at hand involves constructing a predictive model that leverages various features associated with a customer’s initial order. The objective is to determine whether a €5.00 voucher should be issued to a
-specific customer. The model should be designed to predict if a customer will place a follow-up purchase within 90 days following their initial purchase. This information is represented by the target90 variable in the dataset. Each customer who is predicted to not place a subsequent order will be sent a voucher.
+## Business context
+- Customers are labeled with `target90`, indicating whether they place another order within 90 days of their first purchase.
+- Sending a voucher to a true churner yields an expected uplift of €1.25 (25% redemption on a €10 order minus the €5 voucher value).
+- Sending a voucher to someone who would reorder anyway costs €5.
+- Not sending a voucher leaves revenue unchanged.
 
-Empirical analyses by the media retailer have shown that for 25% of the churning customers, the voucher triggers a purchase with an average order value of €10. So if a voucher is sent to a customer who would not have bought again, revenue increases by an average of €1.25. Conversely, sending a voucher to a customer who would have placed an order anyway results in a revenue loss equivalent to the voucher value of €5. For customers who don’t receive a voucher, there is no impact on revenues.
+The expected revenue objective for a set of predictions is captured as:
+$$R = 1.25 \cdot TP_{\text{churn}} - 5 \cdot FP_{\text{voucher}}$$
+where $TP_{\text{churn}}$ counts customers correctly identified as churners (and thus voucher-worthy) and $FP_{\text{voucher}}$ counts customers who would have re-ordered but received a voucher.
 
-The model’s performance is evaluated based on the expected revenue across all customers in a given dataset. This is computed by considering the model’s predictions in conjunction with the associated costs and revenues. It’s crucial to note that the model’s effectiveness is directly tied to its ability to maximize this expected revenue. Hence, the model should be optimized with this specific goal in mind.
+## Data
+- Labeled dataset of first-order customers with order- and customer-level attributes (see notebook for the full schema).
+- Target: `target90` (1 = reorder within 90 days, 0 = churn).
+- Decision rule: send a €5 voucher to customers predicted to churn.
 
-## Models Trained
+## Approach
+The accompanying notebook walks through the following steps:
+- Exploratory data analysis to understand distributions, leakage risks, and class balance.
+- Feature preparation (type casting, handling missing values, encoding/normalization as needed).
+- Train/validation splits for offline evaluation.
+- Model training for tree-based learners and boosting methods.
+- Business-centric evaluation using the expected revenue objective alongside standard classification metrics (confusion matrix, precision/recall/AUC) to sanity-check behavior.
 
+## Models trained
 - Random Forest
 - AdaBoost
 - XGBoost
+
+## Results and interpretation
+- The notebook compares the above models on the expected revenue objective and common classification metrics.
+- Visual diagnostics (e.g., performance curves and feature importance plots) help explain why the best-performing model makes its decisions.
+- Use the notebook’s final evaluation section to choose the operating threshold that maximizes expected revenue for your business constraints.
+
+## Repository layout
+- README.md: Project overview and instructions.
+- Machine_Learning_Revenue_Optimization_via_Strategic_Couponing.ipynb: End-to-end analysis, modeling, and evaluation.
+
+## Getting started
+1) Create an environment (Python 3.10+ recommended):
+```
+python -m venv .venv
+.venv\Scripts\activate
+```
+2) Install core dependencies:
+```
+pip install -U pip
+pip install pandas numpy scikit-learn xgboost matplotlib seaborn jupyter
+```
+3) Launch Jupyter and open the notebook:
+```
+jupyter notebook Machine_Learning_Revenue_Optimization_via_Strategic_Couponing.ipynb
+```
+
+## Reproducing the analysis
+- Run the notebook top-to-bottom to recreate data preparation, training, and evaluation steps.
+- Adjust the decision threshold in the evaluation section to see how expected revenue responds.
+- If you bring new data, ensure columns match the training schema or update the feature preprocessing cells accordingly.
